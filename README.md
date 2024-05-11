@@ -7,12 +7,13 @@ This program allows you to encode large files into smaller chunks and decode the
 ```bash
 
 ./chunk decode <input_directory> <output_directory>
+python program_name.py decode input_directory [output_directory]
 ./chunk decode container decoded_output
 ```
 ### Encoding
 ```bash
 ./chunk encode <input_file> <output_directory> <chunk_size>
-
+python program_name.py encode input_file output_directory chunk_size
 ./chunk encode image.webp container 1048576
 encodes image.webp to 1mb chunk
 ```
