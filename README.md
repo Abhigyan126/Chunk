@@ -16,6 +16,12 @@ python program_name.py decode input_directory [output_directory]
 python program_name.py encode input_file output_directory chunk_size
 ./chunk encode image.webp container 1048576
 encodes image.webp to 1mb chunk
+
+```
+### Compile code
+
+```
+clang++/g++ -std=c++17 -o Chunk main.cpp   
 ```
 
 Requirements
