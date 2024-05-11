@@ -21,7 +21,7 @@ encodes image.webp to 1mb chunk
 ### Compile code
 
 ```
-clang++/g++ -std=c++17 -o Chunk main.cpp   
+clang++/g++ -std=c++17 -o Chunk chunk.cpp   
 ```
 
 Requirements
