@@ -8,7 +8,7 @@ This program allows you to encode large files into smaller chunks and decode the
 
 ./chunk decode <input_directory> .
 python program_name.py decode input_directory .
-./chunk decode container decoded_output
+./chunk decode container .
 ```
 ### Encoding
 ```bash
