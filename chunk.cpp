@@ -40,6 +40,7 @@ void encode(const std::string& input, const std::string& outputDir, int chunkSiz
         if (bytesRead == 0) {
             break;
         }
+
         std::ofstream outFile(outputDir + "/part_" + std::to_string(partNumber) + ".chunk", std::ios::binary);
         outFile.write(buffer, bytesRead);
         outFile.close();
@@ -56,20 +57,47 @@ void encode(const std::string& input, const std::string& outputDir, int chunkSiz
     header.fileName = input;
     header.fileSize = fs::file_size(input);
 
-    std::ofstream headerFile(outputDir + "/header.hdr", std::ios::binary);
-    headerFile.write(reinterpret_cast<char*>(&header), sizeof(FileHeader));
+    // Write header to a text file
+    std::ofstream headerFile(outputDir + "/header.txt");
+    if (!headerFile) {
+        std::cerr << "Exception: Cannot create header file" << std::endl;
+        return;
+    }
+    headerFile << "Total Chunks: " << header.totalChunks << std::endl;
+    headerFile << "File Name: " << header.fileName << std::endl;
+    headerFile << "File Size: " << header.fileSize << std::endl;
     headerFile.close();
+
+    // Write chunk file names to a text file
+    std::ofstream chunkListFile(outputDir + "/chunk_list.txt");
+    if (!chunkListFile) {
+        std::cerr << "Exception: Cannot create chunk list file" << std::endl;
+        return;
+    }
+    for (const auto& chunkFile : chunkFiles) {
+        chunkListFile << chunkFile << std::endl;
+    }
+    chunkListFile.close();
 }
 
 void decode(const std::string& inputDir, const std::string& outputDir) {
     // Read metadata from header file
     FileHeader header;
-    std::ifstream headerFile(inputDir + "/header.hdr", std::ios::binary);
+    std::ifstream headerFile(inputDir + "/header.txt");
     if (!headerFile) {
         std::cerr << "Exception: Cannot open header file" << std::endl;
         return;
     }
-    headerFile.read(reinterpret_cast<char*>(&header), sizeof(FileHeader));
+    std::string line;
+    while (std::getline(headerFile, line)) {
+        if (line.find("Total Chunks: ") != std::string::npos) {
+            header.totalChunks = std::stoi(line.substr(14));
+        } else if (line.find("File Name: ") != std::string::npos) {
+            header.fileName = line.substr(11);
+        } else if (line.find("File Size: ") != std::string::npos) {
+            header.fileSize = std::stol(line.substr(11));
+        }
+    }
     headerFile.close();
 
     std::string decodeOutputDir;
@@ -85,8 +113,15 @@ void decode(const std::string& inputDir, const std::string& outputDir) {
         return;
     }
 
-    for (int i = 1; i <= header.totalChunks; ++i) {
-        std::ifstream inFile(inputDir + "/part_" + std::to_string(i) + ".chunk", std::ios::binary);
+    // Read chunk file names from the chunk list file
+    std::ifstream chunkListFile(inputDir + "/chunk_list.txt");
+    if (!chunkListFile) {
+        std::cerr << "Exception: Cannot open chunk list file" << std::endl;
+        return;
+    }
+    std::string chunkFileName;
+    while (std::getline(chunkListFile, chunkFileName)) {
+        std::ifstream inFile(inputDir + "/" + chunkFileName, std::ios::binary);
         if (!inFile) {
             std::cerr << "Exception: Cannot open chunk file" << std::endl;
             return;
@@ -104,6 +139,7 @@ void decode(const std::string& inputDir, const std::string& outputDir) {
         delete[] buffer;
         inFile.close();
     }
+    chunkListFile.close();
 
     outputFile.close();
 }
